@@ -12,7 +12,7 @@ function App() {
             Quote of the Day
           </h1>
           <p className="text-lg text-gray-600 max-w-xl mx-auto">
-            Todays quote
+            Quote Resets at 00:00 UTC
           </p>
           <div className="w-24 h-1 bg-gradient-to-r from-indigo-500 to-purple-500 mx-auto mt-6 rounded-full"></div>
         </header>

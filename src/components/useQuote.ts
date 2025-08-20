@@ -10,17 +10,22 @@ const useQuote = () => {
     const fetchQuote = async () => {
       try {
         setLoading(true);
-        
         // Check localStorage first
         const cachedQuote = localStorage.getItem('dailyQuote');
         const cacheTimestamp = localStorage.getItem('quoteTimestamp');
-        
         // Use cached quote if it's from today
+
         if (cachedQuote && cacheTimestamp) {
-          const today = new Date().toDateString();
-          const cacheDate = new Date(parseInt(cacheTimestamp)).toDateString();
-          
-          if (today === cacheDate) {
+          const now = new Date();
+
+          // Today’s reset time at 00:00 UTC
+          const todayResetUTC = Date.UTC(
+            now.getUTCFullYear(),
+            now.getUTCMonth(),
+            now.getUTCDate()
+          );
+          const cacheTime = parseInt(cacheTimestamp);
+          if (cacheTime >= todayResetUTC) {
             setQuote(JSON.parse(cachedQuote));
             setLoading(false);
             return;
@@ -32,8 +37,6 @@ const useQuote = () => {
         const data = await response.json();
         
         if (response.ok) {
-          // Cache the quote
-          console.log(data)
           const quoteData = {
             q: data[0].q,
             a: data[0].a,
