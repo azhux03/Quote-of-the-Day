@@ -3,11 +3,14 @@ import type { Quote } from './quote';
 
 const useQuote = () => {
   const [quote, setQuote] = useState<Quote | null>(null);
+  const [randomQuotes, setRandomQuotes] = useState<Quote[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [randomLoading, setRandomLoading] = useState(false);
+  const [errorDaily, setErrorDaily] = useState<string | null>(null);
+  const [errorRandom, setErrorRandom] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchQuote = async () => {
+    const fetchDailyQuote = async () => {
       try {
         setLoading(true);
         // Check localStorage first
@@ -36,7 +39,7 @@ const useQuote = () => {
         const response = await fetch('https://corsproxy.io/?https://zenquotes.io/api/today');
         const data = await response.json();
         
-        if (response.ok) {
+        if (response.ok && data && data[0]) {
           const quoteData = {
             q: data[0].q,
             a: data[0].a,
@@ -53,19 +56,73 @@ const useQuote = () => {
             i: ""
           };
           setQuote(fallbackQuote);
-          setError("Using backup quote");
         }
       } catch (err) {
-        setError('Failed to fetch quote');
+        setErrorDaily('Failed to fetch quote');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchQuote();
+    fetchDailyQuote();
   }, []);
 
-  return { quote, loading, error };
+  // Fetch random quotes
+  const fetchRandomQuotes = async () => {
+    try {
+      setRandomLoading(true);
+      
+      // Fetch 3 random quotes
+      const promises = Array(3).fill(null).map(() => 
+        fetch('https://corsproxy.io/?https://zenquotes.io/api/random').then(async res => {
+          if (res.ok) {
+            const data = await res.json();
+            // Check if data is valid
+            if (data && data[0]) {
+              return data;
+            }
+          }
+          throw new Error('Failed to fetch');
+        })
+      );
+      
+      const results = await Promise.all(promises);
+      if (results){
+        const randomQuotesData: Quote[] = results.map(data => ({
+          q: data[0].q,
+          a: data[0].a,
+          i: `https://zenquotes.io/img/${data[0].a.toLowerCase().replace(/\s+/g, "-")}.jpg`
+        }));
+        setRandomQuotes(randomQuotesData);
+      }
+      else{
+        // Set fallback quotes
+        setRandomQuotes([
+        { q: "Try again later, too many requests",
+            a: "",
+            i: "" },
+        { q: "Try again later, too many requests",
+            a: "",
+            i: "" },
+        { q: "Try again later, too many requests",
+            a: "",
+            i: "" }
+      ]);
+      }
+    } catch (err) {
+      setErrorRandom('Failed to fetch random quotes');
+    } finally {
+      setRandomLoading(false);
+    }
+  };
+
+  // Fetch random quotes on component mount
+  useEffect(() => {
+    fetchRandomQuotes();
+  }, []);
+
+  return { quote, randomQuotes, loading, randomLoading, errorDaily, errorRandom, fetchRandomQuotes };
 };
+
 
 export default useQuote;
