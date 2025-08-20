@@ -91,7 +91,7 @@ const RandomQuotes: React.FC<RandomQuotesCard> = ({ quotes, loading, errorRandom
             </blockquote>
 
             {/* Author pinned to bottom */}
-            <div className="flex items-center space-x-3 mt-auto">
+            <div className="flex items-center justify-end space-x-3 mt-auto">
               <p className="font-medium text-gray-800 text-sm">— {quote.a}</p>
               {quote.i && (
                 <img
